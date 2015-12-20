@@ -23,7 +23,10 @@ int32_t g_num_files = 0;
 char *files[MAX_NUM_MODULES] = {0};
 
 typedef long (*set_affinity_fn)(pid_t, const struct cpumask *);
-set_affinity_fn set_cpu_affinity;
+static set_affinity_fn set_cpu_affinity;
+
+typedef void (*vmalloc_sync_all_fn)(void);
+static vmalloc_sync_all_fn __vmalloc_sync_all;
 
 /* The memory management context for the hypervisor. */
 struct mm_struct * g_mmu_context = NULL;
@@ -115,16 +118,32 @@ ioctl_add_module_length(int32_t len)
     return BF_IOCTL_SUCCESS;
 }
 
+static int
+__fill_in_page_tables_for(struct mm_struct *mm)
+{
+    /* Unused, but we want this in the signature, as we'll need it if we ever
+     * allocate something from outside of the vmalloc area. */
+    (void)mm;
+
+    /* Fill in page tables for every region of memory that's being passed to
+     * the VMM. Note that this only works if everything allocated in platform.c
+     * is allocated from the vmalloc region. (If anything were to be allocated
+     * from outside of the vmalloc region, you'd need to use apply_to_page_range
+     * on that region to achieve the same effect. */
+    __vmalloc_sync_all();
+    return BF_SUCCESS;
+}
+
+
 int32_t
 ioctl_start_vmm(void)
 {
     int ret;
 
-    ret = common_start_vmm();
-    if (ret != BF_SUCCESS)
+    if (g_mmu_context != NULL)
     {
-        ALERT("IOCTL_START_VMM: failed to start vmm: %d\n", ret);
-        return ret;
+        ALERT("IOCTL_START_VMM: we already seem to have an MMU context for the VMM; has it been started?\n");
+        return BF_ERROR_VMM_ALREADY_STARTED;
     }
 
     /* Borrow the MM context from the current process. This holds a reference
@@ -134,6 +153,26 @@ ioctl_start_vmm(void)
     if(!g_mmu_context)
     {
         ALERT("IOCTL_START_VMM: couldn't find a memory context in which to run!\n");
+        return BF_ERROR_UNKNOWN;
+    }
+
+    /* In some cases, Linux dynamically fills in the page tables for a given process
+     * as faults occur (e.g. in vmalloc_fault). In these cases, we have physical pages
+     * for each of our virtual addresses, but the page tables haven't been populated, yet.
+     *
+     * Before we can pass a MM context to our hypervisor, we'll need to fully flesh out
+     * the hypervisor-used pages-- so all of the mappings are fully valid*/
+    ret = __fill_in_page_tables_for(g_mmu_context);
+    if(ret != BF_SUCCESS)
+    {
+        ALERT("IOCTL_START_VMM: could not create page table for vmm: %d\n", ret);
+        return ret;
+    }
+
+    ret = common_start_vmm();
+    if (ret != BF_SUCCESS)
+    {
+        ALERT("IOCTL_START_VMM: failed to start vmm: %d\n", ret);
         return ret;
     }
 
@@ -237,6 +276,13 @@ dev_init(void)
         return -1;
     }
 
+    __vmalloc_sync_all = (vmalloc_sync_all_fn)kallsyms_lookup_name("vmalloc_sync_all");
+    if (__vmalloc_sync_all == NULL)
+    {
+        ALERT("Failed to locate vmalloc_sync_all, to avoid problems, not continuing to load bareflank\n");
+        return -1;
+    }
+
     if ((ret = misc_register(&bareflank_dev)) != 0)
     {
         ALERT("misc_register failed\n");
@@ -249,7 +295,7 @@ dev_init(void)
         return ret;
     }
 
-    DEBUG("dev_init succeeded\n");
+    DEBUG("dev_init succeeded");
     return 0;
 }
 

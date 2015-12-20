@@ -210,31 +210,31 @@ vmcs_intel_x64::launch()
     // version of this VMCS. Currently, only 64bit VMs are supported. If that
     // changes, these checks will likely need to be re-implemented.
 
-    // if (check_vmcs_host_state() == false)
-    //     return vmcs_error::failure;
+    //if (check_vmcs_host_state() == false)
+    //    return vmcs_error::failure;
 
-    // if (check_vmcs_guest_state() == false)
-    //     return vmcs_error::failure;
+    //if (check_vmcs_guest_state() == false)
+    //    return vmcs_error::failure;
 
-    // if (check_vmcs_control_state() == false)
-    //     return vmcs_error::failure;
+    //if (check_vmcs_control_state() == false)
+    //  return vmcs_error::failure;
 
     // The last step is to launch the VMCS. If the launch fails, we must
     // go through a series of error checks to identify why the failure
     // occured. If the launch succeeds, we should continue execution as
     // normal, not this code will be in a virtual machine when finished.
 
-    // ret = launch_vmcs();
-    // if (ret != vmcs_error::success)
-    // {
-    //     std::cout << "launch failed!!!" << std::endl;
-    //     return vmcs_error::success;
-    // }
-    // else
-    // {
-    //     std::cout << "WOOT, launch was succesfull!!!" << std::endl;
+    ret = launch_vmcs();
+    if (ret != vmcs_error::success)
+    {
+        std::cout << "launch failed!!!" << std::endl;
         return vmcs_error::success;
-    // }
+    }
+    else
+    {
+        std::cout << "WOOT, launch was succesfull!!!" << std::endl;
+        return vmcs_error::success;
+    }
 }
 
 vmcs_error::type

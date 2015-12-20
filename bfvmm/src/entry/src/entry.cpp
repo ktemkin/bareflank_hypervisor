@@ -86,6 +86,7 @@ start_vmm_trampoline(void *arg)
     // TEST #1: This test was designed to see if allocating the debug ring in
     // the vcpu is the problem. So I create the debug ring on the stack here,
     // and it's still a problem.
+    std::cout << "Running TEST 1." << std::endl;
     debug_ring m_debug_ring;
     m_debug_ring.init(vmmr->drr);
     m_debug_ring.init(vmmr->drr);
@@ -96,78 +97,82 @@ start_vmm_trampoline(void *arg)
     // TEST #2: This test was to try and figure out if the C++ code was the
     // issue. The idea here was that maybe removing the C++ component would
     // make it work. But that as was not the case, as it still crashes.
-    // debug_ring_init(vmmr->drr);
-    // debug_ring_init(vmmr->drr);
-    // debug_ring_init(vmmr->drr);
-    // debug_ring_init(vmmr->drr);
-    // debug_ring_init(vmmr->drr);
+    std::cout << "Running TEST 2." << std::endl;
+    debug_ring_init(vmmr->drr);
+    debug_ring_init(vmmr->drr);
+    debug_ring_init(vmmr->drr);
+    debug_ring_init(vmmr->drr);
+    debug_ring_init(vmmr->drr);
 
     // TEST #3: This test was to see if the ELF loader was the issue, as this
     // function is in the same module. This code still crashes.
-    // debug_ring_init_local(vmmr->drr);
-    // debug_ring_init_local(vmmr->drr);
-    // debug_ring_init_local(vmmr->drr);
-    // debug_ring_init_local(vmmr->drr);
-    // debug_ring_init_local(vmmr->drr);
+    std::cout << "Running TEST 3." << std::endl;
+    debug_ring_init_local(vmmr->drr);
+    debug_ring_init_local(vmmr->drr);
+    debug_ring_init_local(vmmr->drr);
+    debug_ring_init_local(vmmr->drr);
+    debug_ring_init_local(vmmr->drr);
 
     // TEST #4: This test test if we run this code from in the this function.
     // In this case, it still crashes, but it takes longer to do so.
-    // {
-    //     vmmr->drr->epos = 0;
-    //     vmmr->drr->spos = 0;
+    std::cout << "Running TEST 4." << std::endl;
+    {
+        vmmr->drr->epos = 0;
+        vmmr->drr->spos = 0;
 
-    //     for (auto i = 0; i < vmmr->drr->len; i++)
-    //         vmmr->drr->buf[i] = '\0';
+        for (auto i = 0; i < vmmr->drr->len; i++)
+            vmmr->drr->buf[i] = '\0';
 
-    //     vmmr->drr->epos = 0;
-    //     vmmr->drr->spos = 0;
+        vmmr->drr->epos = 0;
+        vmmr->drr->spos = 0;
 
-    //     for (auto i = 0; i < vmmr->drr->len; i++)
-    //         vmmr->drr->buf[i] = '\0';
+        for (auto i = 0; i < vmmr->drr->len; i++)
+            vmmr->drr->buf[i] = '\0';
 
-    //     vmmr->drr->epos = 0;
-    //     vmmr->drr->spos = 0;
+        vmmr->drr->epos = 0;
+        vmmr->drr->spos = 0;
 
-    //     for (auto i = 0; i < vmmr->drr->len; i++)
-    //         vmmr->drr->buf[i] = '\0';
+        for (auto i = 0; i < vmmr->drr->len; i++)
+            vmmr->drr->buf[i] = '\0';
 
-    //     vmmr->drr->epos = 0;
-    //     vmmr->drr->spos = 0;
+        vmmr->drr->epos = 0;
+        vmmr->drr->spos = 0;
 
-    //     for (auto i = 0; i < vmmr->drr->len; i++)
-    //         vmmr->drr->buf[i] = '\0';
+        for (auto i = 0; i < vmmr->drr->len; i++)
+            vmmr->drr->buf[i] = '\0';
 
-    //     vmmr->drr->epos = 0;
-    //     vmmr->drr->spos = 0;
+        vmmr->drr->epos = 0;
+        vmmr->drr->spos = 0;
 
-    //     for (auto i = 0; i < vmmr->drr->len; i++)
-    //         vmmr->drr->buf[i] = '\0';
-    // }
+        for (auto i = 0; i < vmmr->drr->len; i++)
+            vmmr->drr->buf[i] = '\0';
+    }
 
     // TEST #5: This test case runs the actual code that we are supposed to
     // run. I do it many times (just like above), as this causes the crash to
     // happen faster.
-    //
-    // if (vcpu == 0 || memory_manager == 0)
-    //     return VMM_ERROR_INVALID_ENTRY_FACTORY;
 
-    // auto vcpu = ef()->get_vcpu_factory()->get_vcpu(0);
-    // auto memory_manager = ef()->get_memory_manager();
+     std::cout << "Running TEST 5." << std::endl;
+     auto vcpu = ef()->get_vcpu_factory()->get_vcpu(0);
+     auto memory_manager = ef()->get_memory_manager();
 
-    // if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
-    //     return VMM_ERROR_INVALID_DRR;
+     if (vcpu == 0 || memory_manager == 0)
+         return VMM_ERROR_INVALID_ENTRY_FACTORY;
 
-    // if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
-    //     return VMM_ERROR_INVALID_DRR;
+     if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
+         return VMM_ERROR_INVALID_DRR;
 
-    // if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
-    //     return VMM_ERROR_INVALID_DRR;
+    if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
+        return VMM_ERROR_INVALID_DRR;
 
-    // if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
-    //     return VMM_ERROR_INVALID_DRR;
+    if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
+        return VMM_ERROR_INVALID_DRR;
 
-    // if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
-    //     return VMM_ERROR_INVALID_DRR;
+    if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
+        return VMM_ERROR_INVALID_DRR;
+
+    if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
+        return VMM_ERROR_INVALID_DRR;
 
     std::cout << "============================================ stop" << std::endl;
 
@@ -188,47 +193,47 @@ start_vmm_trampoline(void *arg)
     // auto vcpu = ef()->get_vcpu_factory()->get_vcpu(0);
     // auto memory_manager = ef()->get_memory_manager();
 
-    // if (vcpu == 0 || memory_manager == 0)
-    //     return VMM_ERROR_INVALID_ENTRY_FACTORY;
+    if (vcpu == 0 || memory_manager == 0)
+        return VMM_ERROR_INVALID_ENTRY_FACTORY;
 
-    // if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
-    //     return VMM_ERROR_INVALID_DRR;
+    if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
+        return VMM_ERROR_INVALID_DRR;
 
-    // INIT_IOSTREAM();
+    INIT_IOSTREAM();
 
-    // // -------------------------------------------------------------------------
-    // // Memory Managment
+    // -------------------------------------------------------------------------
+    // Memory Managment
 
-    // for (auto i = 0; i < MAX_PAGES; i++)
-    // {
-    //     auto pg = page(vmmr->pages[i]);
+    for (auto i = 0; i < MAX_PAGES; i++)
+    {
+        auto pg = page(vmmr->pages[i]);
 
-    //     if (memory_manager->add_page(pg) != memory_manager_error::success)
-    //         return VMM_ERROR_INVALID_PAGES;
-    // }
+        if (memory_manager->add_page(pg) != memory_manager_error::success)
+            return VMM_ERROR_INVALID_PAGES;
+    }
 
-    // // -------------------------------------------------------------------------
-    // // Initialize and Start the VMM
+    // -------------------------------------------------------------------------
+    // Initialize and Start the VMM
 
-    // auto vmm = vcpu->get_vmm();
-    // auto intrinsics = vcpu->get_intrinsics();
+    auto vmm = vcpu->get_vmm();
+    auto intrinsics = vcpu->get_intrinsics();
 
-    // if (vmm->init(intrinsics, memory_manager) != vmm_error::success)
-    //     return VMM_ERROR_VMM_INIT_FAILED;
+    if (vmm->init(intrinsics, memory_manager) != vmm_error::success)
+        return VMM_ERROR_VMM_INIT_FAILED;
 
-    // if (vmm->start() != vmm_error::success)
-    //     return VMM_ERROR_VMM_START_FAILED;
+    if (vmm->start() != vmm_error::success)
+        return VMM_ERROR_VMM_START_FAILED;
 
-    // // -------------------------------------------------------------------------
-    // // Initialize and Luanch the VMCS
+    // -------------------------------------------------------------------------
+    // Initialize and Luanch the VMCS
 
-    // auto vmcs = vcpu->get_vmcs();
+    auto vmcs = vcpu->get_vmcs();
 
-    // if (vmcs->init(intrinsics, memory_manager) != vmcs_error::success)
-    //     return VMM_ERROR_VMM_INIT_FAILED;
+    if (vmcs->init(intrinsics, memory_manager) != vmcs_error::success)
+        return VMM_ERROR_VMM_INIT_FAILED;
 
-    // if (vmcs->launch() != vmcs_error::success)
-    //     return VMM_ERROR_VMM_START_FAILED;
+    if (vmcs->launch() != vmcs_error::success)
+        return VMM_ERROR_VMM_START_FAILED;
 
     return 0;
 }
@@ -239,19 +244,19 @@ stop_vmm_trampoline(void *arg)
     if (arg != 0)
         return VMM_ERROR_INVALID_ARG;
 
-    // auto vcpu = ef()->get_vcpu_factory()->get_vcpu(0);
-    // auto memory_manager = ef()->get_memory_manager();
+    auto vcpu = ef()->get_vcpu_factory()->get_vcpu(0);
+    auto memory_manager = ef()->get_memory_manager();
 
-    // if (vcpu == 0 || memory_manager == 0)
-    //     return VMM_ERROR_INVALID_ENTRY_FACTORY;
+    if (vcpu == 0 || memory_manager == 0)
+        return VMM_ERROR_INVALID_ENTRY_FACTORY;
 
-    // // -------------------------------------------------------------------------
-    // // Stop the VMM
+    // -------------------------------------------------------------------------
+    // Stop the VMM
 
-    // auto vmm = vcpu->get_vmm();
+    auto vmm = vcpu->get_vmm();
 
-    // if (vmm->stop() != vmm_error::success)
-    //     return VMM_ERROR_VMM_STOP_FAILED;
+    if (vmm->stop() != vmm_error::success)
+        return VMM_ERROR_VMM_STOP_FAILED;
 
     return 0;
 }

@@ -340,7 +340,16 @@ exit_handler_dispatch::handle_task_switch()
 void
 exit_handler_dispatch::handle_cpuid()
 {
+    std::cout << std::hex << std::endl;
+    std::cout << "cpuid: " << std::endl;
+    std::cout << "  - rax: 0x" << g_guest_rax << std::endl;
     guest_cpuid();
+    std::cout << "  - rax: 0x" << g_guest_rax << std::endl;
+    std::cout << "  - rbx: 0x" << g_guest_rbx << std::endl;
+    std::cout << "  - rcx: 0x" << g_guest_rcx << std::endl;
+    std::cout << "  - rdx: 0x" << g_guest_rdx << std::endl;
+    spin_wait();
+
     advance_rip();
 }
 
