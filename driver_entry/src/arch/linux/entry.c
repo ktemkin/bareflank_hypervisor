@@ -25,6 +25,9 @@ char *files[MAX_NUM_MODULES] = {0};
 typedef long (*set_affinity_fn)(pid_t, const struct cpumask *);
 set_affinity_fn set_cpu_affinity;
 
+/* The memory management context for the hypervisor. */
+struct mm_struct * g_mmu_context = NULL;
+
 /* ========================================================================== */
 /* Misc Device                                                                */
 /* ========================================================================== */
@@ -124,6 +127,16 @@ ioctl_start_vmm(void)
         return ret;
     }
 
+    /* Borrow the MM context from the current process. This holds a reference
+     * to the context's page tables, ensuring they stay available for hypervisor.
+     * Ideally, this will be replaced once EPT support is in. */
+    g_mmu_context = get_task_mm(current);
+    if(!g_mmu_context)
+    {
+        ALERT("IOCTL_START_VMM: couldn't find a memory context in which to run!\n");
+        return ret;
+    }
+
     DEBUG("IOCTL_START_VMM: succeeded\n");
     return BF_IOCTL_SUCCESS;
 }
@@ -141,6 +154,10 @@ ioctl_stop_vmm(void)
     for (i = 0; i < g_num_files; i++)
         platform_free(files[i]);
 
+    if(g_mmu_context)
+      mmput(g_mmu_context);
+
+    g_mmu_context = NULL;
     g_num_files = 0;
 
     DEBUG("IOCTL_STOP_VMM: succeeded\n");
