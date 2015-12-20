@@ -96,6 +96,16 @@ platform_free_exec(void *addr, int64_t len);
 void
 platform_free_page(struct page_t pg);
 
+
+/**
+ * Returns a top-level (fourth-level) page directory for use by
+ * the VMM. This can be any page table that has mappings for the
+ * pages allocated above, and which will persist for the duration
+ * of the hypervisor.
+ */
+void *
+platform_get_page_directory(void);
+
 #ifdef __cplusplus
 }
 #endif

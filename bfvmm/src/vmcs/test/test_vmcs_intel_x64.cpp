@@ -23,6 +23,7 @@
 #include <vmcs/vmcs_intel_x64.h>
 
 uint64_t fake_vmread_return;
+void * fake_cr3 = (void *)0xDEADBEEF;
 
 bool
 fake_vmread(uint64_t field, uint64_t *val)
@@ -42,7 +43,7 @@ vmcs_ut::test_check_host_cr0_for_unsupported_bits_missing_1s()
     intrinsics_intel_x64 *intrinsics = mocks.Mock<intrinsics_intel_x64>();
 
     vmcs_intel_x64 vmcs;
-    vmcs.init(intrinsics, mm);
+    vmcs.init(intrinsics, mm, fake_cr3);
 
     fake_vmread_return = 0x0;
     mocks.OnCall(intrinsics, intrinsics_intel_x64::vmread).Do(fake_vmread);
@@ -63,7 +64,7 @@ vmcs_ut::test_check_host_cr0_for_unsupported_bits_missing_0s()
     intrinsics_intel_x64 *intrinsics = mocks.Mock<intrinsics_intel_x64>();
 
     vmcs_intel_x64 vmcs;
-    vmcs.init(intrinsics, mm);
+    vmcs.init(intrinsics, mm, fake_cr3);
 
     fake_vmread_return = 0xFFFFFFFFFFFFFFFF;
     mocks.OnCall(intrinsics, intrinsics_intel_x64::vmread).Do(fake_vmread);
@@ -84,7 +85,7 @@ vmcs_ut::test_check_host_cr0_for_unsupported_bits_valid()
     intrinsics_intel_x64 *intrinsics = mocks.Mock<intrinsics_intel_x64>();
 
     vmcs_intel_x64 vmcs;
-    vmcs.init(intrinsics, mm);
+    vmcs.init(intrinsics, mm, fake_cr3);
 
     // The hardware apears to always return 0xFFFFFFFFFFFFFFFF for the fixed
     // 1 MSR, which means that it is always ok to turn on a bit. For this

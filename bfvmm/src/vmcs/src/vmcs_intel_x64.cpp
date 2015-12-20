@@ -46,7 +46,8 @@ vmcs_intel_x64::vmcs_intel_x64() :
 
 vmcs_error::type
 vmcs_intel_x64::init(intrinsics *intrinsics,
-                     memory_manager *memory_manager)
+                     memory_manager *memory_manager,
+                     void * host_cr3)
 {
     if (intrinsics == 0 || memory_manager == 0)
         return vmcs_error::failure;
@@ -58,6 +59,8 @@ vmcs_intel_x64::init(intrinsics *intrinsics,
 
     m_intrinsics = reinterpret_cast<intrinsics_intel_x64 *>(intrinsics);
     m_memory_manager = memory_manager;
+
+    m_host_cr3 = (uint64_t)host_cr3;
 
     return vmcs_error::success;
 }
@@ -689,7 +692,7 @@ vmcs_error::type
 vmcs_intel_x64::write_natural_width_host_state_fields()
 {
     vmwrite(VMCS_HOST_CR0, m_cr0);
-    vmwrite(VMCS_HOST_CR3, m_cr3);
+    vmwrite(VMCS_HOST_CR3, m_host_cr3);
     vmwrite(VMCS_HOST_CR4, m_cr4);
     vmwrite(VMCS_HOST_FS_BASE, m_intrinsics->read_msr(IA32_FS_BASE));
     vmwrite(VMCS_HOST_GS_BASE, m_intrinsics->read_msr(IA32_GS_BASE));

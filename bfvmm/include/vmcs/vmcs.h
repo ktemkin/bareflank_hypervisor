@@ -44,7 +44,8 @@ public:
     virtual ~vmcs() {}
 
     virtual vmcs_error::type init(intrinsics *intrinsics,
-                                  memory_manager *memory_manager)
+                                  memory_manager *memory_manager,
+                                  void *host_cr3)
     { return vmcs_error::failure; }
 
     virtual vmcs_error::type launch()

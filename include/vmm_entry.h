@@ -27,6 +27,12 @@
 #include <constants.h>
 #include <debug_ring_interface.h>
 
+#pragma pack(push, 1)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * VMM Error Codes
  */
@@ -63,6 +69,13 @@ typedef void *(*entry_point_t)(void *arg);
  */
 struct vmm_resources_t
 {
+    /*
+     * The physical address of the fourth-level page directory to be adopted
+     * once the VMM starts. This can be equal to the current CR3-- or it can
+     * be a subset that contains at least the mappings for the VMM.
+     */
+    void * vmm_cr3;
+
     /*
      * Debug ring structure used by the VMM to support debugging.
      */
@@ -103,5 +116,11 @@ start_vmm(void *arg);
  */
 void *
 stop_vmm(void *arg);
+
+#ifdef __cplusplus
+}
+#endif
+
+#pragma pack(pop)
 
 #endif

@@ -225,6 +225,13 @@ common_init(void)
     if (vmmr == 0)
         return BF_ERROR_INVALID_ARG;
 
+    vmmr->vmm_cr3 = platform_get_page_directory();
+    if(vmmr->vmm_cr3 == 0)
+    {
+        ALERT("start_vmm: failed to get a valid page directory for the VMM\n");
+        return BF_ERROR_INVALID_CR3;
+    }
+
     if (g_drr == 0)
     {
         g_drr = platform_alloc(DEBUG_RING_SIZE);
@@ -234,7 +241,7 @@ common_init(void)
             return BF_ERROR_FAILED_TO_ALLOC_DRR;
         }
 
-        vmmr->drr = g_drr;
+        vmmr->drr = (struct debug_ring_resources *)g_drr;
         vmmr->drr->len = DEBUG_RING_SIZE - sizeof(struct debug_ring_resources);
     }
 
@@ -377,7 +384,7 @@ common_start_vmm(void)
 
     g_vmm_status = VMM_STARTED;
 
-    ret = execute_symbol("_Z9start_vmmPv", get_vmmr());
+    ret = execute_symbol("start_vmm", get_vmmr());
     if (ret != BF_SUCCESS)
     {
         ALERT("start_vmm: failed to execute symbol: %d\n", ret);
@@ -399,7 +406,7 @@ common_stop_vmm(void)
 
     if (vmm_status() == VMM_STARTED)
     {
-        ret = execute_symbol("_Z8stop_vmmPv", 0);
+        ret = execute_symbol("stop_vmm", 0);
         if (ret != BFELF_SUCCESS)
             ALERT("stop_vmm: failed to execute symbol: %d\n", ret);
     }

@@ -29,11 +29,11 @@
 #endif
 
 // =============================================================================
-// Entry Functions
+// Internal C++ Entry Functions
 // =============================================================================
 
 void *
-start_vmm(void *arg)
+start_vmm_trampoline(void *arg)
 {
     auto *vmmr = (vmm_resources_t *)arg;
 
@@ -56,8 +56,8 @@ start_vmm(void *arg)
     // -------------------------------------------------------------------------
     // Initialize Debugging
 
-    // if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
-    //     return VMM_ERROR_INVALID_DRR;
+    if (vcpu->get_debug_ring()->init(vmmr->drr) != debug_ring_error::success)
+        return VMM_ERROR_INVALID_DRR;
 
     INIT_IOSTREAM();
 
@@ -85,11 +85,11 @@ start_vmm(void *arg)
         return VMM_ERROR_VMM_START_FAILED;
 
     // -------------------------------------------------------------------------
-    // Initialize and Luanch the VMCS
+    // Initialize and Launch the VMCS
 
     auto vmcs = vcpu->get_vmcs();
 
-    if (vmcs->init(intrinsics, memory_manager) != vmcs_error::success)
+    if (vmcs->init(intrinsics, memory_manager, vmmr->vmm_cr3) != vmcs_error::success)
         return VMM_ERROR_VMM_INIT_FAILED;
 
     if (vmcs->launch() != vmcs_error::success)
@@ -99,7 +99,7 @@ start_vmm(void *arg)
 }
 
 void *
-stop_vmm(void *arg)
+stop_vmm_trampoline(void *arg)
 {
     if (arg != 0)
         return VMM_ERROR_INVALID_ARG;
@@ -119,4 +119,20 @@ stop_vmm(void *arg)
         return VMM_ERROR_VMM_STOP_FAILED;
 
     return 0;
+}
+
+// =============================================================================
+// C Entry Functions
+// =============================================================================
+
+extern "C" void *
+start_vmm(void *arg)
+{
+    return start_vmm_trampoline(arg);
+}
+
+extern "C" void *
+stop_vmm(void *arg)
+{
+    return stop_vmm_trampoline(arg);
 }

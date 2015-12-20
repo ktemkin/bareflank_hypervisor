@@ -47,8 +47,9 @@ public:
     /// @param memory_manager the memory manager class that this VMCS will use
     /// @return success on success, failure otherwise
     ///
-    vmcs_error::type init(intrinsics *intrinsics,
-                          memory_manager *memory_manager) override;
+    virtual vmcs_error::type init(intrinsics *intrinsics,
+                                  memory_manager *memory_manager,
+                                  void *host_cr3) override;
 
     /// Launch VMM
     ///
@@ -308,6 +309,8 @@ private:
     uint64_t m_cr3;
     uint64_t m_cr4;
     uint64_t m_rflags;
+
+    uint64_t m_host_cr3;
 
     gdt_t m_gdt_reg;
     idt_t m_idt_reg;
